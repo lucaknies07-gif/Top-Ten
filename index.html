@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Ten - Das Spiel</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --bg-base: #07080e;
+            --grid-color: rgba(20, 24, 38, 0.6);
+            --card-main: #0d0f17;
+            --card-inner: #151826;
+            --border-main: #1d2136;
+            --border-inner: #292f4c;
+            --accent-cyan: #4cc3ff;
+            --accent-magenta: #ff4bb4;
+            --text-main: #e2e8f0;
+            --text-muted: #5a6585;
+            --success-neon: #39ff14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 420px;
+            background: var(--card-main);
+            border: 1px solid var(--border-main);
+            border-radius: 28px;
+            padding: 30px 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .main-title {
+            font-size: 32px;
+            font-weight: 800;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        .inner-box {
+            background: var(--card-inner);
+            border: 1px solid var(--border-inner);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: var(--card-inner);
+            border: 1px solid var(--border-inner);
+            color: var(--text-main);
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .btn:active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(80, 195, 255, 0.3);
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, rgba(80, 195, 255, 0.1), rgba(255, 75, 180, 0.1));
+            border-color: var(--accent-magenta);
+            color: var(--text-main);
+        }
+
+        .btn-primary:active {
+            border-color: var(--accent-magenta);
+            box-shadow: 0 0 15px rgba(255, 75, 180, 0.3);
+        }
+
+        input[type="text"] {
+            background: var(--card-inner);
+            border: 1px solid var(--border-inner);
+            color: var(--text-main);
+            padding: 14px 16px;
+            font-size: 15px;
+            border-radius: 12px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .player-list {
+            list-style: none;
+            margin-top: 15px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            background: rgba(21, 24, 38, 0.5);
+            border: 1px solid var(--border-main);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .topic-display {
+            border-left: 3px solid var(--accent-magenta);
+            padding-left: 14px;
+        }
+
+        .topic-text {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .topic-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .secret-number-box {
+            font-size: 80px;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 25px 0;
+            display: none;
+        }
+
+        .scale-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .scale-slot {
+            display: flex;
+            align-items: center;
+            background: var(--card-inner);
+            border: 1px solid var(--border-inner);
+            border-radius: 12px;
+            min-height: 46px;
+        }
+
+        .scale-slot.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(80, 195, 255, 0.05);
+        }
+
+        .slot-number {
+            width: 36px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-right: 1px solid var(--border-inner);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-content {
+            flex: 1;
+            padding: 4px 10px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            min-height: 36px;
+            align-items: center;
+        }
+
+        .draggable-player {
+            background: var(--card-main);
+            border: 1px solid var(--accent-cyan);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: grab;
+            touch-action: none;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .draggable-player.dragging {
+            opacity: 0.4;
+        }
+
+        .pool-container {
+            background: rgba(21, 24, 38, 0.3);
+            border: 1px dashed var(--border-inner);
+            padding: 12px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        .pool-content {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-height: 38px;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-main);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        td {
+            font-weight: 500;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .badge {
+            background: rgba(255, 75, 180, 0.15);
+            border: 1px solid var(--accent-magenta);
+            color: var(--accent-magenta);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen-registration" class="screen active">
+        <div class="main-title">Top Ten</div>
+        <div class="subtitle">Spielerregistrierung</div>
+        
+        <div class="inner-box">
+            <div class="section-title">Neuer Spieler</div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-player-name" placeholder="Name...">
+                <button id="btn-add-player" class="btn" style="margin-top:0; width:auto; padding: 0 20px;
