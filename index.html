@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Ten - Das Spiel</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --bg-color: #0d0e15;
+            --card-bg: #181a26;
+            --accent-cyan: #00f0ff;
+            --accent-magenta: #ff007f;
+            --text-color: #e2e8f0;
+            --text-muted: #718096;
+            --border-color: #2d3748;
+            --success-color: #39ff14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding: safe;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        h2 {
+            color: var(--accent-magenta);
+            text-shadow: 0 0 10px var(--accent-magenta);
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn:active {
+            background: var(--accent-cyan);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--accent-cyan);
+        }
+
+        .btn-secondary {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+        }
+
+        .btn-secondary:active {
+            background: var(--accent-magenta);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--accent-magenta);
+        }
+
+        input[type="text"] {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        .player-list {
+            list-style: none;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .player-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .topic-display {
+            border-left: 4px solid var(--accent-magenta);
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+
+        .topic-text {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .topic-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .secret-number-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .secret-number-box {
+            font-size: 72px;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 20px var(--accent-cyan);
+            margin: 20px 0;
+            display: none;
+        }
+
+        .scale-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .scale-slot {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            min-height: 50px;
+            position: relative;
+        }
+
+        .scale-slot.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .slot-number {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--accent-magenta);
+            border-right: 1px solid var(--border-color);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-content {
+            flex: 1;
+            padding: 5px 10px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            min-height: 40px;
+            align-items: center;
+        }
+
+        .draggable-player {
+            background: var(--bg-color);
+            border: 1px solid var(--accent-cyan);
+            color: var(--text-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: grab;
+            touch-action: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .draggable-player.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .pool-container {
+            background: rgba(24, 26, 38, 0.5);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        .pool-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .pool-content {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--accent-cyan);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .badge {
+            background: var(--accent-magenta);
+            color: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen-registration" class="screen active">
+        <h1>Top Ten</h1>
+        <div class="card">
+            <h3>Spieler hinzufügen</h3>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="input-player-name" placeholder="Name eingeben...">
+                <button id="btn-add-player" class="btn" style="margin-top:0; width:auto; padding: 0 20px;">+</button>
+            </div>
+            <ul id="registration-list" class="player-list"></ul>
+            <button id="btn-start-game" class="btn btn-secondary">Spiel starten</button>
+        </div>
+    </div>
+
+    <div id="screen-round-start" class="screen">
+        <h2>Neue Runde</h2>
+        <div class="card">
+            <h3 id="captain-announcement">Kapitän</h3>
+            <p style="text-align: center; margin-bottom: 20px; color: var(--text-muted);">
+                Der Kapitän muss gleich die Antworten der Mitspieler in die richtige Reihenfolge von 1 bis 10 bringen.
+            </p>
+            <div class="topic-display">
+                <div class="pool-title">Das gezogene Thema</div>
+                <div id="round-topic-text" class="topic-text">Thema wird geladen...</div>
+                <div class="topic-scale">
+                    <span id="topic-min">Minimum (1)</span>
+                    <span id="topic-max">Maximum (10)</span>
+                </div>
+            </div>
+            <button id="btn-to-secret-numbers" class="btn">Geheimzahlen ziehen</button>
+        </div>
+    </div>
+
+    <div id="screen-secret-numbers" class="screen">
+        <h2>Geheimzahlen</h2>
+        <div class="card secret-number-container">
+            <h3 id="secret-player-name">Spieler</h3>
+            <p style="color: var(--text-muted); margin-bottom: 15px;">Gib das Gerät weiter, damit nur du deine Zahl siehst.</p>
+            <button id="btn-show-number" class="btn btn-secondary">Zahl anzeigen</button>
+            <div id="secret-number-box" class="secret-number-box">5</div>
+            <button id="btn-next-secret" class="btn" style="display: none;">Bestätigen & Weiter</button>
+        </div>
+    </div>
+
+    <div id="screen-sorting" class="screen">
+        <h2>Sortierung</h2>
+        <div class="topic-display" style="margin-bottom: 15px;">
+            <div id="sorting-topic-text" class="topic-text">Thema</div>
+            <div class="topic-scale">
+                <span id="sorting-topic-min">1</span>
+                <span id="sorting-topic-max">10</span>
+            </div>
+        </div>
+
+        <div class="pool-container">
+            <div class="pool-title">Spielerkarten (Antworten laut nennen!)</div>
+            <div id="players-pool" class="pool-content"></div>
+        </div>
+
+        <div id="vertical-scale" class="scale-container"></div>
+
+        <button id="btn-evaluate-round" class="btn btn-secondary">Runde auswerten</button>
+    </div>
+
+    <div id="screen-results" class="screen">
+        <h2>Auswertung</h2>
+        <div class="card">
+            <h3>Rundenergebnis</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Spieler</th>
+                            <th>Ziel</th>
+                            <th>Tipp</th>
+                            <th>Abw.</th>
+                            <th>Punkte</th>
+                        </tr>
+                    </thead>
+                    <tbody id="round-results-body"></tbody>
+                </table>
+            </div>
+            <div id="captain-round-points" style="font-weight: bold; margin-bottom: 15px; color: var(--accent-cyan);"></div>
+        </div>
+
+        <div class="card">
+            <h3>Gesamtwertung</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Platz</th>
+                            <th>Spieler</th>
+                            <th>Gesamtpunkte</th>
+                        </tr>
+                    </thead>
+                    <tbody id="total-results-body"></tbody>
+                </table>
+            </div>
+            <button id="btn-next-round" class="btn">Nächste Runde</button>
+        </div>
+    </div>
+
+    <script>
+        // Themen-Datenbank
+        const topicsPool = [
+            { text: "Thema fürs erste Date", min: "Red Flag", max: "Traumhaft" },
+            { text: "Gefährliches Haustier", min: "Harmloser Hamster", max: "Mutierter Godzilla" },
+            { text: "Geräusch mitten in der Nacht", min: "Maus raschelt", max: "Einbrecher mit Kettensäge" },
+            { text: "Fähigkeit als Superkraft", min: "Löffel leicht verbiegen", max: "Zeitreisen und Teleportation" },
+            { text: "Geschenk vom Partner", min: "Gebrauchte Socken", max: "Luxus-Sportwagen" },
+            { text: "Essen in einem Restaurant", min: "Ungenießbar verbrannt", max: "Drei-Sterne-Gourmet-Menü" },
+            { text: "Urlaubsziel", min: "Hinterhof im Regen", max: "Einsame Karibikinsel" },
+            { text: "Ausrede für das Zu-Spät-Kommen", min: "Wecker vergessen", max: "Vom Geheimdienst rekrutiert" }
+        ];
+
+        // Globaler Status
+        let players = [];
+        let currentRound = 0;
+        let captainIndex = 0;
+        let currentTopic = null;
+        let secretNumbers = {}; 
+        let activeSecretPlayerIndex = 0;
+
+        // DOM-Elemente
+        const screens = {
+            registration: document.getElementById('screen-registration'),
+            roundStart: document.getElementById('screen-round-start'),
+            secretNumbers: document.getElementById('screen-secret-numbers'),
+            sorting: document.getElementById('screen-sorting'),
+            results: document.getElementById('screen-results')
+        };
+
+        function showScreen(screenKey) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenKey].classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // --- SCREEN 1: REGISTRIERUNG ---
+        const inputPlayerName = document.getElementById('input-player-name');
+        const btnAddPlayer = document.getElementById('btn-add-player');
+        const registrationList = document.getElementById('registration-list');
+        const btnStartGame = document.getElementById('btn-start-game');
+
+        btnAddPlayer.addEventListener('click', () => {
+            const name = inputPlayerName.value.trim();
+            if (name) {
+                players.push({
+                    id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    name: name,
+                    totalPoints: 0
+                });
+                inputPlayerName.value = '';
+                updateRegistrationList();
+            }
+        });
+
+        function updateRegistrationList() {
+            registrationList.innerHTML = '';
+            players.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+                li.textContent = p.name;
+                registrationList.appendChild(li);
+            });
+        }
+
+        btnStartGame.addEventListener('click', () => {
+            if (players.length < 3) {
+                alert('Bitte füge mindestens 3 Spieler hinzu.');
+                return;
+            }
+            currentRound = 1;
+            captainIndex = 0;
+            initRound();
+        });
+
+        // --- SCREEN 2: RUNDENSTART ---
+        function initRound() {
+            currentTopic = topicsPool[Math.floor(Math.random() * topicsPool.length)];
+            
+            document.getElementById('captain-announcement').textContent = `Kapitän: ${players[captainIndex].name}`;
+            document.getElementById('round-topic-text').textContent = currentTopic.text;
+            document.getElementById('topic-min').textContent = `${currentTopic.min} (1)`;
+            document.getElementById('topic-max').textContent = `${currentTopic.max} (10)`;
+
+            // Zahlen vorbereiten (1 bis 10 mischen und zuteilen)
+            secretNumbers = {};
+            let numbers = Array.from({length: 10}, (_, i) => i + 1);
+            // Shuffle
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+
+            let numIdx = 0;
+            players.forEach((p, idx) => {
+                if (idx !== captainIndex) {
+                    secretNumbers[p.id] = numbers[numIdx];
+                    numIdx++;
+                }
+            });
+
+            showScreen('roundStart');
+        }
+
+        document.getElementById('btn-to-secret-numbers').addEventListener('click', () => {
+            activeSecretPlayerIndex = 0;
+            prepareSecretNumberScreen();
+            showScreen('secretNumbers');
+        });
+
+        // --- SCREEN 3: GEHEIMZAHLEN VERTEILEN ---
+        const secretPlayerName = document.getElementById('secret-player-name');
+        const btnShowNumber = document.getElementById('btn-show-number');
+        const secretNumberBox = document.getElementById('secret-number-box');
+        const btnNextSecret = document.getElementById('btn-next-secret');
+
+        function getNonCaptainPlayers() {
+            return players.filter((_, idx) => idx !== captainIndex);
+        }
+
+        function prepareSecretNumberScreen() {
+            const nonCaptains = getNonCaptainPlayers();
+            const currentPlayer = nonCaptains[activeSecretPlayerIndex];
+
+            secretPlayerName.textContent = currentPlayer.name;
+            secretNumberBox.style.display = 'none';
+            btnShowNumber.style.display = 'block';
+            btnNextSecret.style.display = 'none';
+        }
+
+        btnShowNumber.addEventListener('click', () => {
+            const nonCaptains = getNonCaptainPlayers();
+            const currentPlayer = nonCaptains[activeSecretPlayerIndex];
+            
+            secretNumberBox.textContent = secretNumbers[currentPlayer.id];
+            secretNumberBox.style.display = 'block';
+            btnShowNumber.style.display = 'none';
+            btnNextSecret.style.display = 'block';
+        });
+
+        btnNextSecret.addEventListener('click', () => {
+            const nonCaptains = getNonCaptainPlayers();
+            activeSecretPlayerIndex++;
+
+            if (activeSecretPlayerIndex < nonCaptains.length) {
+                prepareSecretNumberScreen();
+            } else {
+                prepareSortingScreen();
+                showScreen('sorting');
+            }
+        });
+
+        // --- SCREEN 4: SORTIERUNG (DRAG AND DROP) ---
+        function prepareSortingScreen() {
+            document.getElementById('sorting-topic-text').textContent = currentTopic.text;
+            document.getElementById('sorting-topic-min').textContent = `${currentTopic.min} (1)`;
+            document.getElementById('sorting-topic-max').textContent = `${currentTopic.max} (10)`;
+
+            const pool = document.getElementById('players-pool');
+            pool.innerHTML = '';
+            
+            const scale = document.getElementById('vertical-scale');
+            scale.innerHTML = '';
+
+            // Vertikale Skala aufbauen (1 bis 10)
+            for (let i = 1; i <= 10; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'scale-slot';
+                slot.dataset.slotNumber = i;
+
+                const numDiv = document.createElement('div');
+                numDiv.className = 'slot-number';
+                numDiv.textContent = i;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'slot-content';
+
+                slot.appendChild(numDiv);
+                slot.appendChild(contentDiv);
+                scale.appendChild(slot);
+
+                // Desktop Drag & Drop Events
+                slot.addEventListener('dragover', e => e.preventDefault());
+                slot.addEventListener('dragenter', () => slot.classList.add('drag-over'));
+                slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+                slot.addEventListener('drop', e => {
+                    slot.classList.remove('drag-over');
+                    const playerId = e.dataTransfer.getData('text/plain');
+                    const element = document.getElementById(playerId);
+                    if (element) contentDiv.appendChild(element);
+                });
+            }
+
+            // Spieler-Karten in den Pool legen
+            const nonCaptains = getNonCaptainPlayers();
+            nonCaptains.forEach(p => {
+                const pCard = document.createElement('div');
+                pCard.className = 'draggable-player';
+                pCard.textContent = p.name;
+                pCard.id = p.id;
+                pCard.draggable = true;
+
+                // Desktop Drag Events
+                pCard.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', pCard.id);
+                    pCard.classList.add('dragging');
+                });
+                pCard.addEventListener('dragend', () => pCard.classList.remove('dragging'));
+
+                // Mobile Touch Drag & Drop Implementierung (Flüssiges Bewegen)
+                pCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+                pCard.addEventListener('touchmove', handleTouchMove, { passive: false });
+                pCard.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+                pool.appendChild(pCard);
+            });
+        }
+
+        // Touch Drag & Drop State
+        let activeTouchElement = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let originalParent = null;
+
+        function handleTouchStart(e) {
+            activeTouchElement = e.currentTarget;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            originalParent = activeTouchElement.parentNode;
+            
+            activeTouchElement.style.position = 'fixed';
+            activeTouchElement.style.zIndex = '1000';
+            moveAt(touch.clientX, touch.clientY);
+        }
+
+        function handleTouchMove(e) {
+            if (!activeTouchElement) return;
+            e.preventDefault(); 
+            const touch = e.touches[0];
+            moveAt(touch.clientX, touch.clientY);
+
+            // Visuelles Feedback für darunterliegende Slots
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            document.querySelectorAll('.scale-slot').forEach(slot => slot.classList.remove('drag-over'));
+            
+            if (elementUnder) {
+                const slot = elementUnder.closest('.scale-slot');
+                if (slot) slot.classList.add('drag-over');
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!activeTouchElement) return;
+            document.querySelectorAll('.scale-slot').forEach(slot => slot.classList.remove('drag-over'));
+
+            const touch = e.changedTouches[0];
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            const slot = elementUnder ? elementUnder.closest('.scale-slot') : null;
+
+            // Reset Styles
+            activeTouchElement.style.position = '';
+            activeTouchElement.style.zIndex = '';
+            activeTouchElement.style.left = '';
+            activeTouchElement.style.top = '';
+
+            if (slot) {
+                slot.querySelector('.slot-content').appendChild(activeTouchElement);
+            } else {
+                // Zurück in den Ursprungs-Container falls daneben gedroppt
+                originalParent.appendChild(activeTouchElement);
+            }
+            activeTouchElement = null;
+        }
+
+        function moveAt(clientX, clientY) {
+            if (!activeTouchElement) return;
+            const width = activeTouchElement.offsetWidth;
+            const height = activeTouchElement.offsetHeight;
+            activeTouchElement.style.left = (clientX - width / 2) + 'px';
+            activeTouchElement.style.top = (clientY - height / 2) + 'px';
+        }
+
+        // --- SCREEN 5: AUSWERTUNG & PUNKTE ---
+        document.getElementById('btn-evaluate-round').addEventListener('click', () => {
+            const nonCaptains = getNonCaptainPlayers();
+            let allPlaced = true;
+            let placements = {}; // playerId -> gewählterSlot (1-10)
+
+            nonCaptains.forEach(p => {
+                const el = document.getElementById(p.id);
+                const slot = el.closest('.scale-slot');
+                if (!slot) {
+                    allPlaced = false;
+                } else {
+                    placements[p.id] = parseInt(slot.dataset.slotNumber, 10);
+                }
+            });
+
+            if (!allPlaced) {
+                alert('Bitte ordne alle Spielerkarten einem Platz auf der Skala zu.');
+                return;
+            }
+
+            evaluateRoundPoints(placements);
+        });
+
+        function evaluateRoundPoints(placements) {
+            const nonCaptains = getNonCaptainPlayers();
+            const roundResultsBody = document.getElementById('round-results-body');
+            roundResultsBody.innerHTML = '';
+
+            let totalTeamDeviation = 0;
+            let roundScores = {};
+
+            // Berechnung für Nicht-Kapitäne
+            nonCaptains.forEach(p => {
+                const target = secretNumbers[p.id];
+                const guess = placements[p.id];
+                const deviation = Math.abs(target - guess);
+                totalTeamDeviation += deviation;
+
+                let points = 0;
+                if (deviation === 0) points = 3;
+                else if (deviation === 1) points = 2;
+                else if (deviation === 2) points = 1;
+
+                p.totalPoints += points;
+                roundScores[p.id] = { target, guess, deviation, points };
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${p.name}</td>
+                    <td class="text-center">${target}</td>
+                    <td class="text-center">${guess}</td>
+                    <td class="text-center" style="color: ${deviation === 0 ? 'var(--success-color)' : 'var(--accent-magenta)'}">${deviation}</td>
+                    <td class="text-center">+${points}</td>
+                `;
+                roundResultsBody.appendChild(row);
+            });
+
+            // Berechnung für Kapitän
+            const captain = players[captainIndex];
+            const maxPossibleDeviation = nonCaptains.length * 9; 
+            const captainPoints = Math.max(0, Math.round((maxPossibleDeviation - totalTeamDeviation) / nonCaptains.length));
+            captain.totalPoints += captainPoints;
+
+            document.getElementById('captain-round-points').textContent = 
+                `Kapitän ${captain.name} erhält +${captainPoints} Punkte (Gesamtabweichung des Teams: ${totalTeamDeviation})`;
+
+            updateTotalLeaderboard();
+            showScreen('results');
+        }
+
+        function updateTotalLeaderboard() {
+            const totalResultsBody = document.getElementById('total-results-body');
+            totalResultsBody.innerHTML = '';
+
+            // Sortierte Liste erstellen
+            const sortedPlayers = [...players].sort((a, b) => b.totalPoints - a.totalPoints);
+
+            sortedPlayers.forEach((p, idx) => {
+                const row = document.createElement('tr');
+                const isCaptain = idx === captainIndex;
+                row.innerHTML = `
+                    <td class="text-center">${idx + 1}</td>
+                    <td>${p.name} ${idx === 0 ? '<span class="badge">Führung</span>' : ''}</td>
+                    <td class="text-center" style="font-weight: bold; color: var(--accent-cyan);">${p.totalPoints}</td>
+                `;
+                totalResultsBody.appendChild(row);
+            });
+        }
+
+        document.getElementById('btn-next-round').addEventListener('click', () => {
+            currentRound++;
+            // Nächster Spieler wird Kapitän
+            captainIndex = (captainIndex + 1) % players.length;
+            initRound();
+        });
+    </script>
+</body>
+</html>
