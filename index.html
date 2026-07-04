@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Ten - Das Spiel</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --bg-base: #0a0b10;
+            --grid-color: rgba(32, 38, 57, 0.4);
+            --card-main: #11131e;
+            --card-inner: #1a1d2e;
+            --border-main: #262b44;
+            --border-inner: #373e62;
+            --accent-cyan: #00f0ff;
+            --accent-magenta: #ff007f;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --success-neon: #39ff14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 410px;
+            background: var(--card-main);
+            border: 2px solid var(--border-main);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .cyber-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .cyber-header::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+            margin: 12px auto 0 auto;
+        }
+
+        .main-title {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 4px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::before { content: '>'; color: var(--accent-magenta); }
+
+        .inner-box {
+            background: var(--card-inner);
+            border: 1px solid var(--border-inner);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: #1e2238;
+            border: 1px solid var(--border-inner);
+            color: var(--text-main);
+            padding: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.15s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.15), rgba(255, 0, 127, 0.15));
+            border: 1px solid var(--accent-magenta);
+        }
+
+        input[type="text"] {
+            background: var(--card-main);
+            border: 1px solid var(--border-inner);
+            color: var(--text-main);
+            padding: 12px 16px;
+            font-size: 15px;
+            border-radius: 10px;
+            width: 100%;
+            outline: none;
+        }
+
+        .player-list {
+            list-style: none;
+            margin-top: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            background: rgba(10, 11, 16, 0.6);
+            border: 1px solid var(--border-main);
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .player-item::after {
+            content: 'READY';
+            color: var(--accent-cyan);
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .topic-display { border-left: 4px solid var(--accent-magenta); }
+        .topic-text { font-size: 15px; font-weight: 700; line-height: 1.4; margin-bottom: 12px; }
+        .topic-scale { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+
+        .secret-number-box {
+            font-size: 72px;
+            font-weight: 900;
+            text-align: center;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .scale-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+            max-height: 290px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .scale-slot {
+            display: flex;
+            align-items: center;
+            background: var(--card-inner);
+            border: 1px solid var(--border-inner);
+            border-radius: 10px;
+            min-height: 46px;
+            position: relative;
+        }
+
+        .slot-number {
+            width: 36px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-muted);
+            border-right: 1px solid var(--border-inner);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-content {
+            flex: 1;
+            padding: 4px 10px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            min-height: 38px;
+        }
+
+        .draggable-player {
+            background: var(--card-main);
+            border: 1px solid var(--accent-cyan);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            touch-action: none;
+            user-select: none;
+            cursor: grab;
+            position: relative;
+            z-index: 10;
+        }
+
+        .draggable-player.dragging {
+            cursor: grabbing;
+            border-color: var(--accent-magenta);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+            z-index: 9999 !important;
+        }
+
+        .pool-container {
+            background: rgba(26, 29, 46, 0.4);
+            border: 1px dashed var(--border-inner);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+        }
+
+        .pool-content {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-height: 44px;
+            align-items: center;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { padding: 8px 6px; text-align: left; font-size: 12px; border-bottom: 1px solid var(--border-main); }
+        th { color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 10px; }
+        .text-center { text-align: center; }
+        .badge { background: rgba(255, 0, 127, 0.15); border: 1px solid var(--accent-magenta); color: var(--accent-magenta); padding: 1px 4px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div id="screen-registration" class="screen active">
+        <div class="cyber-header">
+            <div class="main-title">Top Ten</div>
+            <div class="subtitle">System-Initialisierung</div>
+        </div>
+        <div class="inner-box">
+            <div class="section-title">Spieler hinzufügen</div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-player-name" placeholder="Name eingeben...">
+                <button id="btn-add-player" class="btn" style="margin-top:0; width:auto; padding: 0 20px; border-color: var(--accent-cyan);">+</button>
+            </div>
+            <ul id="registration-list" class="player-list"></ul>
+        </div>
+        <button id="btn-start-game" class="btn btn-primary">Spiel starten</button>
+    </div>
+
+    <div id="screen-round-start" class="screen">
+        <div class="cyber-header">
+            <div class="main-title">Runde Start</div>
+            <div id="captain-announcement" class="subtitle">Kapitän</div>
+        </div>
+        <div class="inner-box topic-display">
+            <div class="section-title" style="color: var(--accent-cyan);">Szenario</div>
+            <div id="round-topic-text" class="topic-text">Lade Thema...</div>
+            <div class="topic-scale">
+                <span id="topic-min">Min (1)</span>
+                <span id="topic-max">Max (10)</span>
+            </div>
+        </div>
+        <button id="btn-to-secret-numbers" class="btn">Zahlen vergeben</button>
+    </div>
+
+    <div id="screen-secret-numbers" class="screen">
+        <div class="cyber-header">
+            <div class="main-title">Geheimzahl</div>
+            <div id="secret-player-name" class="subtitle">Spieler</div>
+        </div>
+        <div class="inner-box" style="text-align: center;">
+            <div class="section-title" style="color: var(--text-muted); justify-content: center;">Sicherheits-Verifizierung</div>
+            <button id="btn-show-number" class="btn">Zahl anzeigen</button>
+            <div id="secret-number-box" class="secret-number-box">0</div>
+        </div>
+        <button id="btn-next-secret" class="btn btn-primary" style="display: none;">Bestätigen</button>
+    </div>
+
+    <div id="screen-sorting" class="screen">
+        <div class="cyber-header">
+            <div class="main-title">Priorities</div>
+            <div class="subtitle">Skala anordnen</div>
+        </div>
+
+        <div class="inner-box topic-display" style="padding: 12px; margin-bottom: 12px;">
+            <div id="sorting-topic-text" class="topic-text" style="font-size: 13px; margin-bottom: 6px;">Thema</div>
+            <div class="topic-scale" style="font-size: 10px;">
+                <span id="sorting-topic-min">1</span>
+                <span id="sorting-topic-max">10</span>
+            </div>
+        </div>
+
+        <div class="pool-container">
+            <div class="pool-content" id="players-pool"></div>
+        </div>
+
+        <div id="vertical-scale" class="scale-container"></div>
+
+        <button id="btn-evaluate-round" class="btn btn-primary">Auswerten</button>
+    </div>
+
+    <div id="screen-results" class="screen">
+        <div class="cyber-header">
+            <div class="main-title">Datenmatrix</div>
+            <div class="subtitle">Ergebnisse</div>
+        </div>
+        <div class="inner-box" style="padding: 12px; margin-bottom: 12px;">
+            <div class="section-title">Runden-Metriken</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Spieler</th>
+                        <th class="text-center">Ziel</th>
+                        <th class="text-center">Tipp</th>
+                        <th class="text-center">Abw.</th>
+                        <th class="text-center">Pkt</th>
+                    </tr>
+                </thead>
+                <tbody id="round-results-body"></tbody>
+            </table>
+            <div id="captain-round-points" style="font-size: 11px; font-weight: 700; margin-top: 12px; color: var(--accent-cyan); text-align: center;"></div>
+        </div>
+        <div class="inner-box" style="padding: 12px; margin-bottom: 15px;">
+            <div class="section-title">Gesamtranking</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px;" class="text-center">Pos</th>
+                        <th>Spieler</th>
+                        <th class="text-center">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="total-results-body"></tbody>
+            </table>
+        </div>
+        <button id="btn-next-round" class="btn">Nächste Runde</button>
+    </div>
+
+    <script>
+        const topicsPool = [
+            { text: "Thema fürs erste Date", min: "Red Flag", max: "Traumhaft" },
+            { text: "Gefährliches Haustier", min: "Harmloser Hamster", max: "Mutierter Godzilla" },
+            { text: "Geräusch mitten in der Nacht", min: "Maus raschelt", max: "Einbrecher" },
+            { text: "Fähigkeit als Superkraft", min: "Löffel verbiegen", max: "Zeitreisen" },
+            { text: "Geschenk vom Partner", min: "Alte Socken", max: "Luxus-Sportwagen" },
+            { text: "Essen im Restaurant", min: "Ungenießbar", max: "Sterne-Menü" }
+        ];
+
+        let players = [];
+        let currentRound = 0;
+        let captainIndex = 0;
+        let currentTopic = null;
+        let secretNumbers = {}; 
+        let activeSecretPlayerIndex = 0;
+
+        const screens = {
+            registration: document.getElementById('screen-registration'),
+            roundStart: document.getElementById('screen-round-start'),
+            secretNumbers: document.getElementById('screen-secret-numbers'),
+            sorting: document.getElementById('screen-sorting'),
+            results: document.getElementById('screen-results')
+        };
+
+        function showScreen(screenKey) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenKey].classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        const inputPlayerName = document.getElementById('input-player-name');
+        const btnAddPlayer = document.getElementById('btn-add-player');
+        const registrationList = document.getElementById('registration-list');
+        const btnStartGame = document.getElementById('btn-start-game');
+
+        btnAddPlayer.addEventListener('click', () => {
+            const name = inputPlayerName.value.trim();
+            if (name) {
+                players.push({ id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), name: name, totalPoints: 0 });
+                inputPlayerName.value = '';
+                updateRegistrationList();
+            }
+        });
+
+        function updateRegistrationList() {
+            registrationList.innerHTML = '';
+            players.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+                li.textContent = p.name;
+                registrationList.appendChild(li);
+            });
+        }
+
+        btnStartGame.addEventListener('click', () => {
+            if (players.length < 3) { alert('Bitte füge mindestens 3 Spieler hinzu.'); return; }
+            currentRound = 1; captainIndex = 0; initRound();
+        });
+
+        function initRound() {
+            currentTopic = topicsPool[Math.floor(Math.random() * topicsPool.length)];
+            document.getElementById('captain-announcement').textContent = `Kapitän: ${players[captainIndex].name}`;
+            document.getElementById('round-topic-text').textContent = currentTopic.text;
+            document.getElementById('topic-min').textContent = `${currentTopic.min} (1)`;
+            document.getElementById('topic-max').textContent = `${currentTopic.max} (10)`;
+
+            secretNumbers = {};
+            let numbers = Array.from({length: 10}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let numIdx = 0;
+            players.forEach((p, idx) => {
+                if (idx !== captainIndex) { secretNumbers[p.id] = numbers[numIdx++]; }
+            });
+            showScreen('roundStart');
+        }
+
+        document.getElementById('btn-to-secret-numbers').addEventListener('click', () => {
+            activeSecretPlayerIndex = 0; prepareSecretNumberScreen(); showScreen('secretNumbers');
+        });
+
+        const secretPlayerName = document.getElementById('secret-player-name');
+        const btnShowNumber = document.getElementById('btn-show-number');
+        const secretNumberBox = document.getElementById('secret-number-box');
+        const btnNextSecret = document.getElementById('btn-next-secret');
+
+        function getNonCaptainPlayers() { return players.filter((_, idx) => idx !== captainIndex); }
+
+        function prepareSecretNumberScreen() {
+            const nonCaptains = getNonCaptainPlayers();
+            const currentPlayer = nonCaptains[activeSecretPlayerIndex];
+            secretPlayerName.textContent = currentPlayer.name;
+            secretNumberBox.style.display = 'none';
+            btnShowNumber.style.display = 'block';
+            btnNextSecret.style.display = 'none';
+        }
+
+        btnShowNumber.addEventListener('click', () => {
+            const nonCaptains = getNonCaptainPlayers();
+            secretNumberBox.textContent = secretNumbers[nonCaptains[activeSecretPlayerIndex].id];
+            secretNumberBox.style.display = 'block';
+            btnShowNumber.style.display = 'none';
+            btnNextSecret.style.display = 'block';
+        });
+
+        btnNextSecret.addEventListener('click', () => {
+            activeSecretPlayerIndex++;
+            if (activeSecretPlayerIndex < getNonCaptainPlayers().length) { prepareSecretNumberScreen(); } 
+            else { prepareSortingScreen(); showScreen('sorting'); }
+        });
+
+        function prepareSortingScreen() {
+            document.getElementById('sorting-topic-text').textContent = currentTopic.text;
+            document.getElementById('sorting-topic-min').textContent = `${currentTopic.min} (1)`;
+            document.getElementById('sorting-topic-max').textContent = `${currentTopic.max} (10)`;
+
+            const pool = document.getElementById('players-pool'); pool.innerHTML = '';
+            const scale = document.getElementById('vertical-scale'); scale.innerHTML = '';
+
+            for (let i = 1; i <= 10; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'scale-slot'; slot.dataset.slotNumber = i;
+                slot.innerHTML = `<div class="slot-number">${i}</div><div class="slot-content"></div>`;
+                scale.appendChild(slot);
+            }
+
+            getNonCaptainPlayers().forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'draggable-player'; card.textContent = p.name; card.id = p.id;
+                pool.appendChild(card);
+                setupPointerDrag(card);
+            });
+        }
+
+        function setupPointerDrag(el) {
+            let startX, startY, initialX, initialY;
+            let isDragging = false;
+
+            el.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                el.setPointerCapture(e.pointerId);
+                el.classList.add('dragging');
+
+                const rect = el.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                el.style.width = rect.width + 'px';
+                el.style.position = 'fixed';
+                el.style.left = initialX + 'px';
+                el.style.top = initialY + 'px';
+            });
+
+            el.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                el.style.left = (initialX + dx) + 'px';
+                el.style.top = (initialY + dy) + 'px';
+            });
+
+            el.addEventListener('pointerup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                el.releasePointerCapture(e.pointerId);
+                el.classList.remove('dragging');
+
+                el.style.position = ''; el.style.left = ''; el.style.top = ''; el.style.width = '';
+
+                const dropX = e.clientX;
+                const dropY = e.clientY;
+                let targetContainer = document.getElementById('players-pool');
+                let closestDist = Infinity;
+
+                document.querySelectorAll('.scale-slot').forEach(slot => {
+                    const r = slot.getBoundingClientRect();
+                    const slotCenterX = r.left + r.width / 2;
+                    const slotCenterY = r.top + r.height / 2;
+                    const dist = Math.hypot(dropX - slotCenterX, dropY - slotCenterY);
+                    
+                    if (dist < closestDist && dist < 80) {
+                        closestDist = dist;
+                        targetContainer = slot.querySelector('.slot-content');
+                    }
+                });
+
+                targetContainer.appendChild(el);
+            });
+
+            el.addEventListener('pointercancel', () => {
+                isDragging = false;
+                el.style.position = ''; el.style.left = ''; el.style.top = ''; el.style.width = '';
+                document.getElementById('players-pool').appendChild(el);
+            });
+        }
+
+        document.getElementById('btn-evaluate-round').addEventListener('click', () => {
+            const nonCaptains = getNonCaptainPlayers();
+            let allPlaced = true; let placements = {};
+
+            nonCaptains.forEach(p => {
+                const el = document.getElementById(p.id);
+                const slot = el ? el.closest('.scale-slot') : null;
+                if (!slot) { allPlaced = false; } 
+                else { placements[p.id] = parseInt(slot.dataset.slotNumber, 10); }
+            });
+
+            if (!allPlaced) { alert('Bitte ziehe alle Spieler auf die Nummern-Slots der Skala.'); return; }
+            evaluateRoundPoints(placements);
+        });
+
+        // HIER SITZT DAS NEUE PUNTKESYSTEM (LOGIK KORRIGIERT)
+        function evaluateRoundPoints(placements) {
+            const nonCaptains = getNonCaptainPlayers();
+            const roundResultsBody = document.getElementById('round-results-body');
+            roundResultsBody.innerHTML = '';
+            let totalTeamDeviation = 0;
+
+            nonCaptains.forEach(p => {
+                const target = secretNumbers[p.id];
+                const guess = placements[p.id];
+                const deviation = Math.abs(target - guess);
+                totalTeamDeviation += deviation;
+
+                // Belohnung für Präzision, Bestrafung für Fehler
+                let points = 0;
+                let pointColor = 'var(--text-main)';
+                if (deviation === 0) {
+                    points = 10;
+                    pointColor = 'var(--success-neon)';
+                } else if (deviation === 1) {
+                    points = 5;
+                    pointColor = 'var(--accent-cyan)';
+                } else if (deviation === 2) {
+                    points = 2;
+                } else {
+                    points = -5; // Abzug bei groben Fehlern
+                    pointColor = 'var(--accent-magenta)';
+                }
+                
+                p.totalPoints += points;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight:600;">${p.name}</td>
+                    <td class="text-center" style="color: var(--text-muted); font-weight:700;">${target}</td>
+                    <td class="text-center" style="color: var(--text-muted);">${guess}</td>
+                    <td class="text-center" style="font-weight:800; color: ${deviation === 0 ? 'var(--success-neon)' : 'var(--accent-magenta)'}">${deviation}</td>
+                    <td class="text-center" style="color: ${pointColor}; font-weight:700;">${points >= 0 ? '+' + points : points}</td>
+                `;
+                roundResultsBody.appendChild(row);
+            });
+
+            // Kapitän-Berechnung: Startet mit 15 Punkten, verliert 3 Punkte pro Abweichungspunkt im Team
+            const captain = players[captainIndex];
+            const captainPoints = 15 - (totalTeamDeviation * 3);
+            captain.totalPoints += captainPoints;
+
+            const capPointText = captainPoints >= 0 ? `+${captainPoints}` : `${captainPoints}`;
+            document.getElementById('captain-round-points').textContent = `Kapitän ${captain.name} erhält ${capPointText} Punkte (Team-Abweichung gesamt: ${totalTeamDeviation})`;
+            
+            updateTotalLeaderboard(); 
+            showScreen('results');
+        }
+
+        function updateTotalLeaderboard() {
+            const totalResultsBody = document.getElementById('total-results-body');
+            totalResultsBody.innerHTML = '';
+            [...players].sort((a, b) => b.totalPoints - a.totalPoints).forEach((p, idx) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="text-center" style="color: var(--text-muted); font-weight:800;">${idx + 1}</td>
+                    <td style="font-weight: 600;">${p.name} ${idx === 0 ? '<span class="badge">MVP</span>' : ''}</td>
+                    <td class="text-center" style="font-weight: 800; color: var(--accent-cyan);">${p.totalPoints}</td>
+                `;
+                totalResultsBody.appendChild(row);
+            });
+        }
+
+        document.getElementById('btn-next-round').addEventListener('click', () => {
+            captainIndex = (captainIndex + 1) % players.length; initRound();
+        });
+    </script>
+</body>
+</html>
